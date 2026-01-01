@@ -179,11 +179,10 @@ export default function Index() {
 
             <section className="grid md:grid-cols-3 gap-6">
               {[
-                { icon: 'Sword', color: 'primary', title: 'PvP Модули', desc: 'KillAura, Velocity, AutoArmor и другие боевые функции' },
-                { icon: 'Eye', color: 'secondary', title: 'Визуалы', desc: 'ESP, Tracers, XRay для полного обзора карты' },
-                { icon: 'Zap', color: 'accent', title: 'Автоматизация', desc: 'AutoFarm, AutoMine, AutoClicker — играй на автопилоте' }
+                { icon: 'MessageSquare', color: 'primary', title: 'Discord', desc: 'Присоединяйся к нашему сообществу', link: 'https://discord.gg/MmHMg7vtcv' },
+                { icon: 'Send', color: 'secondary', title: 'Telegram', desc: 'Новости и обновления в Telegram', link: 'https://t.me/liriderclient' }
               ].map((feature, i) => (
-                <Card key={i} className="bg-card/50 backdrop-blur border-primary/20 hover:border-primary/50 transition-all hover-lift">
+                <Card key={i} className="bg-card/50 backdrop-blur border-primary/20 hover:border-primary/50 transition-all hover-lift cursor-pointer" onClick={() => window.open(feature.link, '_blank')}>
                   <CardHeader>
                     <div className={`w-16 h-16 rounded-lg bg-${feature.color}/20 flex items-center justify-center mb-4`}>
                       <Icon name={feature.icon} size={32} className={`text-${feature.color}`} />
@@ -191,7 +190,11 @@ export default function Index() {
                     <CardTitle className="text-2xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-base">{feature.desc}</CardDescription>
+                    <CardDescription className="text-base mb-4">{feature.desc}</CardDescription>
+                    <Button className="w-full bg-primary/20 hover:bg-primary/30 border border-primary/30">
+                      <Icon name="ExternalLink" size={16} className="mr-2" />
+                      Перейти
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -201,10 +204,10 @@ export default function Index() {
               <h3 className="text-3xl font-bold text-center mb-8">Почему выбирают Lirider?</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 {[
-                  { icon: 'Shield', text: 'Обход античитов' },
-                  { icon: 'Gauge', text: 'Высокая производительность' },
-                  { icon: 'Puzzle', text: '100+ модулей' },
-                  { icon: 'Users', text: '50K+ игроков' }
+                  { icon: 'Shield', text: 'Лучшие обходы' },
+                  { icon: 'Zap', text: 'Оптимизация чита' },
+                  { icon: 'Grid3x3', text: '30+ модулей' },
+                  { icon: 'Users', text: '10+ игроков' }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
@@ -281,106 +284,7 @@ export default function Index() {
               ))}
             </div>
 
-            <Card className="bg-card/50 backdrop-blur border-primary/30 mt-12">
-              <CardHeader>
-                <CardTitle className="text-2xl text-center">Дополнительные возможности</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="config" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 bg-background/50">
-                    <TabsTrigger value="config">Конфиги</TabsTrigger>
-                    <TabsTrigger value="pvp">PvP</TabsTrigger>
-                    <TabsTrigger value="visual">Визуалы</TabsTrigger>
-                    <TabsTrigger value="movement">Движение</TabsTrigger>
-                  </TabsList>
 
-                  <TabsContent value="config" className="space-y-4 mt-6">
-                    <p className="text-gray-400">Настройте модули под ваш стиль игры и сохраните конфигурацию</p>
-                  </TabsContent>
-
-                  <TabsContent value="pvp" className="space-y-6 mt-6">
-                    <Card className="bg-background/30 border-primary/20">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Icon name="Target" size={24} className="text-primary" />
-                          KillAura
-                        </CardTitle>
-                        <CardDescription>Автоматическая атака врагов</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label>Включить</Label>
-                          <Switch 
-                            checked={settings.pvp.killaura}
-                            onCheckedChange={(v) => updateSetting('pvp', 'killaura', v)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Дальность: {settings.pvp.reach}m</Label>
-                          <Slider 
-                            value={[settings.pvp.reach]} 
-                            onValueChange={(v) => updateSetting('pvp', 'reach', v[0])}
-                            min={3} 
-                            max={6} 
-                            step={0.1}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="visual" className="space-y-6 mt-6">
-                    {[
-                      { key: 'esp', title: 'ESP', desc: 'Подсветка игроков через стены', icon: 'Users' },
-                      { key: 'xray', title: 'XRay', desc: 'Видеть руды через блоки', icon: 'Gem' }
-                    ].map(item => (
-                      <Card key={item.key} className="bg-background/30 border-secondary/20">
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Icon name={item.icon} size={24} className="text-secondary" />
-                            {item.title}
-                          </CardTitle>
-                          <CardDescription>{item.desc}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between">
-                            <Label>Включить</Label>
-                            <Switch 
-                              checked={settings.visual[item.key]}
-                              onCheckedChange={(v) => updateSetting('visual', item.key, v)}
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </TabsContent>
-
-                  <TabsContent value="movement" className="space-y-6 mt-6">
-                    <Card className="bg-background/30 border-accent/20">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Icon name="Gauge" size={24} className="text-accent" />
-                          Speed
-                        </CardTitle>
-                        <CardDescription>Увеличение скорости</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Скорость: {settings.movement.speed}%</Label>
-                          <Slider 
-                            value={[settings.movement.speed]} 
-                            onValueChange={(v) => updateSetting('movement', 'speed', v[0])}
-                            min={100} 
-                            max={300} 
-                            step={10}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
           </div>
         )}
 
