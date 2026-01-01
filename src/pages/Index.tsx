@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AdminPanel from '@/components/AdminPanel';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,8 +16,12 @@ export default function Index() {
   const [activeSection, setActiveSection] = useState('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [userSubscription, setUserSubscription] = useState<string | null>(null);
   const [cart, setCart] = useState<Array<{id: string, name: string, price: number}>>([]);
   const [showCart, setShowCart] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [settings, setSettings] = useState({
     pvp: { killaura: true, velocity: 50, reach: 3.5 },
     visual: { esp: true, tracers: false, xray: true },
@@ -25,11 +30,31 @@ export default function Index() {
   });
 
   const products = [
-    { id: '1month', name: '1 месяц', price: 200, desc: 'Доступ на 30 дней', icon: 'Calendar', popular: false },
-    { id: '3months', name: '3 месяца', price: 450, desc: 'Доступ на 90 дней', icon: 'CalendarRange', popular: true },
-    { id: 'lifetime', name: 'Навсегда', price: 600, desc: 'Безлимитный доступ', icon: 'Infinity', popular: false },
-    { id: 'beta', name: 'Beta доступ', price: 700, desc: 'Эксклюзивные функции', icon: 'Sparkles', popular: false }
+    { id: '1month', name: '1 месяц', price: 200, desc: 'Доступ на 30 дней', icon: 'Calendar', popular: false, isBeta: false },
+    { id: '3months', name: '3 месяца', price: 450, desc: 'Доступ на 90 дней', icon: 'CalendarRange', popular: true, isBeta: false },
+    { id: 'lifetime', name: 'Навсегда', price: 600, desc: 'Безлимитный доступ', icon: 'Infinity', popular: false, isBeta: false },
+    { id: 'beta', name: 'Beta доступ', price: 700, desc: 'Эксклюзивные функции', icon: 'Sparkles', popular: false, isBeta: true }
   ];
+
+  const handleAdminLogin = () => {
+    if (adminPassword === 'lirider332_malvin') {
+      setShowAdminPanel(true);
+      setShowAdminLogin(false);
+      setAdminPassword('');
+    } else {
+      alert('Неверный пароль');
+    }
+  };
+
+  const handlePurchase = () => {
+    if (cart.length > 0) {
+      const plan = cart[0].name;
+      setUserSubscription(plan);
+      setCart([]);
+      setShowCart(false);
+      alert(`Подписка "${plan}" успешно активирована!`);
+    }
+  };
 
   const addToCart = (product: typeof products[0]) => {
     setCart(prev => [...prev, { id: product.id, name: product.name, price: product.price }]);
@@ -91,6 +116,14 @@ export default function Index() {
                 </Badge>
               )}
             </button>
+            
+            <button 
+              onClick={() => setShowAdminLogin(true)}
+              className="px-4 py-2 bg-destructive/20 hover:bg-destructive/30 rounded-md transition-all"
+              title="Админ-панель"
+            >
+              <Icon name="Shield" size={20} className="text-destructive" />
+            </button>
           </div>
           
           <Button className="md:hidden bg-primary text-black hover:bg-primary/90">
@@ -133,7 +166,10 @@ export default function Index() {
                     <span className="font-bold text-lg">Итого:</span>
                     <span className="font-bold text-2xl text-primary">{cartTotal} ₽</span>
                   </div>
-                  <Button className="w-full bg-primary text-black hover:bg-primary/90 font-bold">
+                  <Button 
+                    className="w-full bg-primary text-black hover:bg-primary/90 font-bold"
+                    onClick={handlePurchase}
+                  >
                     <Icon name="CreditCard" size={18} className="mr-2" />
                     Оплатить
                   </Button>
@@ -166,14 +202,7 @@ export default function Index() {
                   <Icon name="Zap" size={20} className="mr-2" />
                   Купить сейчас
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-secondary text-secondary hover:bg-secondary/10 font-bold text-lg px-8 hover-lift"
-                >
-                  <Icon name="Download" size={20} className="mr-2" />
-                  Скачать v2.4
-                </Button>
+
               </div>
             </section>
 
@@ -191,7 +220,7 @@ export default function Index() {
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="text-base mb-4">{feature.desc}</CardDescription>
-                    <Button className="w-full bg-primary/20 hover:bg-primary/30 border border-primary/30">
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-black font-semibold">
                       <Icon name="ExternalLink" size={16} className="mr-2" />
                       Перейти
                     </Button>
@@ -228,19 +257,20 @@ export default function Index() {
               <p className="text-xl text-gray-400">Выберите подходящий тариф доступа</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map(product => (
-                <Card 
-                  key={product.id} 
-                  className={`bg-card/50 backdrop-blur border-primary/30 hover:border-primary transition-all hover-lift relative ${
-                    product.popular ? 'ring-2 ring-secondary' : ''
-                  }`}
-                >
-                  {product.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-secondary text-white px-4 py-1">Популярный</Badge>
-                    </div>
-                  )}
+            <div className="flex justify-center">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl">
+                {products.filter(p => !p.isBeta).map(product => (
+                  <Card 
+                    key={product.id} 
+                    className={`bg-card/50 backdrop-blur border-primary/30 hover:border-primary transition-all hover-lift relative ${
+                      product.popular ? 'ring-2 ring-secondary' : ''
+                    }`}
+                  >
+                    {product.popular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="bg-secondary text-white px-4 py-1">Популярный</Badge>
+                      </div>
+                    )}
                   <CardHeader className="text-center">
                     <div className="w-20 h-20 mx-auto bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                       <Icon name={product.icon} size={40} className="text-primary" />
@@ -282,9 +312,62 @@ export default function Index() {
                   </CardContent>
                 </Card>
               ))}
+              </div>
             </div>
 
-
+            <div className="flex justify-center mt-12">
+              {products.filter(p => p.isBeta).map(product => (
+                <Card 
+                  key={product.id} 
+                  className="bg-card/50 backdrop-blur border-accent/50 hover:border-accent transition-all hover-lift relative max-w-md ring-2 ring-accent"
+                >
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-accent text-black px-6 py-1.5 font-bold text-base">РАННИЙ ДОСТУП</Badge>
+                  </div>
+                  <CardHeader className="text-center">
+                    <div className="w-24 h-24 mx-auto bg-accent/20 rounded-lg flex items-center justify-center mb-4 animate-pulse">
+                      <Icon name={product.icon} size={48} className="text-accent" />
+                    </div>
+                    <CardTitle className="text-3xl mb-2">{product.name}</CardTitle>
+                    <div className="text-5xl font-black text-accent mb-2">
+                      {product.price} ₽
+                    </div>
+                    <CardDescription className="text-lg">{product.desc}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3 text-base">
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={18} className="text-accent" />
+                        <span>Все модули</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={18} className="text-accent" />
+                        <span>Обход античитов</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={18} className="text-accent" />
+                        <span>Обновления</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Sparkles" size={18} className="text-accent" />
+                        <span className="font-bold">Ранний доступ к новым функциям</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Star" size={18} className="text-accent" />
+                        <span className="font-bold">Приоритетная поддержка</span>
+                      </li>
+                    </ul>
+                    <Button 
+                      className="w-full bg-accent text-black hover:bg-accent/90 font-bold text-lg"
+                      onClick={() => addToCart(product)}
+                    >
+                      <Icon name="ShoppingCart" size={20} className="mr-2" />
+                      Добавить в корзину
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
 
@@ -297,7 +380,7 @@ export default function Index() {
 
             <div className="grid md:grid-cols-3 gap-4 mb-12">
               {[
-                { icon: 'MessageSquare', label: 'Discord', value: 'lirider.gg/discord' },
+                { icon: 'MessageSquare', label: 'Discord', value: 'discord.gg/MmHMg7vtcv' },
                 { icon: 'Mail', label: 'Email', value: 'support@lirider.gg' },
                 { icon: 'Send', label: 'Telegram', value: '@lirider_support' }
               ].map((contact, i) => (
@@ -454,7 +537,12 @@ export default function Index() {
                       </div>
                       <div>
                         <CardTitle className="text-2xl">ProGamer2025</CardTitle>
-                        <CardDescription className="text-base">Премиум подписка до: 15.03.2026</CardDescription>
+                        <CardDescription className="text-base">
+                          {userSubscription 
+                            ? `Подписка: ${userSubscription}` 
+                            : 'Нет активной подписки'
+                          }
+                        </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
@@ -476,22 +564,24 @@ export default function Index() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-card/50 backdrop-blur border-accent/30">
-                  <CardHeader>
-                    <CardTitle>Скачать клиент</CardTitle>
-                    <CardDescription>Последняя версия: v2.4.1</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button className="w-full bg-primary text-black hover:bg-primary/90 font-semibold">
-                      <Icon name="Download" size={18} className="mr-2" />
-                      Скачать для Windows
-                    </Button>
-                    <Button variant="outline" className="w-full border-accent/30">
-                      <Icon name="Download" size={18} className="mr-2" />
-                      Скачать для macOS
-                    </Button>
-                  </CardContent>
-                </Card>
+                {userSubscription && (
+                  <Card className="bg-card/50 backdrop-blur border-accent/30">
+                    <CardHeader>
+                      <CardTitle>Скачать клиент</CardTitle>
+                      <CardDescription>Последняя версия: v2.4.1</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button className="w-full bg-primary text-black hover:bg-primary/90 font-semibold">
+                        <Icon name="Download" size={18} className="mr-2" />
+                        Скачать для Windows
+                      </Button>
+                      <Button variant="outline" className="w-full border-accent/30">
+                        <Icon name="Download" size={18} className="mr-2" />
+                        Скачать для macOS
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card className="bg-card/50 backdrop-blur border-accent/30">
                   <CardHeader>
@@ -570,6 +660,46 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md bg-slate-950 border-destructive/50">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl text-destructive flex items-center gap-2">
+                  <Icon name="Shield" size={24} />
+                  Вход в админ-панель
+                </CardTitle>
+                <Button variant="ghost" onClick={() => setShowAdminLogin(false)}>
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Пароль</Label>
+                <Input 
+                  type="password"
+                  placeholder="Введите пароль администратора"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+                  className="bg-background/50"
+                />
+              </div>
+              <Button 
+                className="w-full bg-destructive hover:bg-destructive/90 font-bold"
+                onClick={handleAdminLogin}
+              >
+                <Icon name="LogIn" size={18} className="mr-2" />
+                Войти
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showAdminPanel && <AdminPanel onClose={() => setShowAdminPanel(false)} />}
     </div>
   );
 }
