@@ -9,15 +9,37 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState('home');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [cart, setCart] = useState<Array<{id: string, name: string, price: number}>>([]);
+  const [showCart, setShowCart] = useState(false);
   const [settings, setSettings] = useState({
     pvp: { killaura: true, velocity: 50, reach: 3.5 },
     visual: { esp: true, tracers: false, xray: true },
     movement: { fly: false, speed: 100, nofall: true },
     auto: { autofarm: true, autoclicker: 12 }
   });
+
+  const products = [
+    { id: '1month', name: '1 месяц', price: 200, desc: 'Доступ на 30 дней', icon: 'Calendar', popular: false },
+    { id: '3months', name: '3 месяца', price: 450, desc: 'Доступ на 90 дней', icon: 'CalendarRange', popular: true },
+    { id: 'lifetime', name: 'Навсегда', price: 600, desc: 'Безлимитный доступ', icon: 'Infinity', popular: false },
+    { id: 'beta', name: 'Beta доступ', price: 700, desc: 'Эксклюзивные функции', icon: 'Sparkles', popular: false }
+  ];
+
+  const addToCart = (product: typeof products[0]) => {
+    setCart(prev => [...prev, { id: product.id, name: product.name, price: product.price }]);
+  };
+
+  const removeFromCart = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   const updateSetting = (category: string, key: string, value: any) => {
     setSettings(prev => ({
@@ -37,10 +59,10 @@ export default function Index() {
             <h1 className="text-2xl font-bold text-primary text-glow">LIRIDER CLIENT</h1>
           </div>
           
-          <div className="hidden md:flex gap-6">
+          <div className="hidden md:flex gap-6 items-center">
             {[
               { id: 'home', label: 'Главная', icon: 'Home' },
-              { id: 'services', label: 'Услуги', icon: 'Settings' },
+              { id: 'services', label: 'Услуги', icon: 'ShoppingBag' },
               { id: 'support', label: 'Поддержка', icon: 'MessageCircle' },
               { id: 'profile', label: 'Профиль', icon: 'User' }
             ].map(item => (
@@ -57,6 +79,18 @@ export default function Index() {
                 <span>{item.label}</span>
               </button>
             ))}
+            
+            <button 
+              onClick={() => setShowCart(!showCart)}
+              className="relative px-4 py-2 bg-secondary/20 hover:bg-secondary/30 rounded-md transition-all"
+            >
+              <Icon name="ShoppingCart" size={20} className="text-secondary" />
+              {cart.length > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-accent text-black px-2 py-0.5">
+                  {cart.length}
+                </Badge>
+              )}
+            </button>
           </div>
           
           <Button className="md:hidden bg-primary text-black hover:bg-primary/90">
@@ -64,6 +98,51 @@ export default function Index() {
           </Button>
         </div>
       </nav>
+
+      {showCart && (
+        <div className="fixed right-4 top-20 w-96 bg-card border border-primary/30 rounded-lg shadow-2xl z-50 animate-fade-in">
+          <div className="p-4 border-b border-primary/20">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold">Корзина</h3>
+              <button onClick={() => setShowCart(false)}>
+                <Icon name="X" size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
+            {cart.length === 0 ? (
+              <p className="text-center text-gray-400 py-8">Корзина пуста</p>
+            ) : (
+              <>
+                {cart.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">{item.name}</p>
+                      <p className="text-sm text-primary">{item.price} ₽</p>
+                    </div>
+                    <button 
+                      onClick={() => removeFromCart(i)}
+                      className="text-destructive hover:bg-destructive/10 p-2 rounded"
+                    >
+                      <Icon name="Trash2" size={16} />
+                    </button>
+                  </div>
+                ))}
+                <div className="border-t border-primary/20 pt-3 mt-3">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-bold text-lg">Итого:</span>
+                    <span className="font-bold text-2xl text-primary">{cartTotal} ₽</span>
+                  </div>
+                  <Button className="w-full bg-primary text-black hover:bg-primary/90 font-bold">
+                    <Icon name="CreditCard" size={18} className="mr-2" />
+                    Оплатить
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-12">
         {activeSection === 'home' && (
@@ -85,7 +164,7 @@ export default function Index() {
                   onClick={() => setActiveSection('services')}
                 >
                   <Icon name="Zap" size={20} className="mr-2" />
-                  Попробовать сейчас
+                  Купить сейчас
                 </Button>
                 <Button 
                   size="lg" 
@@ -140,228 +219,168 @@ export default function Index() {
         )}
 
         {activeSection === 'services' && (
-          <div className="space-y-8 animate-fade-in">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-5xl font-bold text-primary text-glow">Настройки модулей</h2>
-              <p className="text-xl text-gray-400">Настрой чит под свой стиль игры</p>
+          <div className="space-y-12 animate-fade-in">
+            <div className="text-center space-y-4">
+              <h2 className="text-5xl font-bold text-primary text-glow">Тарифы и услуги</h2>
+              <p className="text-xl text-gray-400">Выберите подходящий тариф доступа</p>
             </div>
 
-            <Tabs defaultValue="pvp" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-card/50 p-1">
-                <TabsTrigger value="pvp" className="data-[state=active]:bg-primary data-[state=active]:text-black">
-                  <Icon name="Sword" size={18} className="mr-2" />
-                  PvP
-                </TabsTrigger>
-                <TabsTrigger value="visual" className="data-[state=active]:bg-secondary data-[state=active]:text-white">
-                  <Icon name="Eye" size={18} className="mr-2" />
-                  Визуалы
-                </TabsTrigger>
-                <TabsTrigger value="movement" className="data-[state=active]:bg-accent data-[state=active]:text-black">
-                  <Icon name="Move" size={18} className="mr-2" />
-                  Движение
-                </TabsTrigger>
-                <TabsTrigger value="auto" className="data-[state=active]:bg-primary data-[state=active]:text-black">
-                  <Icon name="Sparkles" size={18} className="mr-2" />
-                  Авто
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="pvp" className="space-y-6 mt-6">
-                <Card className="bg-card/50 backdrop-blur border-primary/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Target" size={24} className="text-primary" />
-                      KillAura
-                    </CardTitle>
-                    <CardDescription>Автоматическая атака врагов</CardDescription>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map(product => (
+                <Card 
+                  key={product.id} 
+                  className={`bg-card/50 backdrop-blur border-primary/30 hover:border-primary transition-all hover-lift relative ${
+                    product.popular ? 'ring-2 ring-secondary' : ''
+                  }`}
+                >
+                  {product.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="bg-secondary text-white px-4 py-1">Популярный</Badge>
+                    </div>
+                  )}
+                  <CardHeader className="text-center">
+                    <div className="w-20 h-20 mx-auto bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                      <Icon name={product.icon} size={40} className="text-primary" />
+                    </div>
+                    <CardTitle className="text-2xl mb-2">{product.name}</CardTitle>
+                    <div className="text-4xl font-black text-primary mb-2">
+                      {product.price} ₽
+                    </div>
+                    <CardDescription className="text-base">{product.desc}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Включить</Label>
-                      <Switch 
-                        checked={settings.pvp.killaura}
-                        onCheckedChange={(v) => updateSetting('pvp', 'killaura', v)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Дальность: {settings.pvp.reach}m</Label>
-                      <Slider 
-                        value={[settings.pvp.reach]} 
-                        onValueChange={(v) => updateSetting('pvp', 'reach', v[0])}
-                        min={3} 
-                        max={6} 
-                        step={0.1}
-                        className="[&_[role=slider]]:bg-primary"
-                      />
-                    </div>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={16} className="text-primary" />
+                        <span>Все модули</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={16} className="text-primary" />
+                        <span>Обход античитов</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Icon name="Check" size={16} className="text-primary" />
+                        <span>Обновления</span>
+                      </li>
+                      {product.id === 'beta' && (
+                        <li className="flex items-center gap-2">
+                          <Icon name="Sparkles" size={16} className="text-accent" />
+                          <span>Ранний доступ</span>
+                        </li>
+                      )}
+                    </ul>
+                    <Button 
+                      className="w-full bg-primary text-black hover:bg-primary/90 font-semibold"
+                      onClick={() => addToCart(product)}
+                    >
+                      <Icon name="ShoppingCart" size={18} className="mr-2" />
+                      Добавить в корзину
+                    </Button>
                   </CardContent>
                 </Card>
-
-                <Card className="bg-card/50 backdrop-blur border-primary/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Wind" size={24} className="text-primary" />
-                      Velocity
-                    </CardTitle>
-                    <CardDescription>Уменьшение отбрасывания</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Сила: {settings.pvp.velocity}%</Label>
-                      <Slider 
-                        value={[settings.pvp.velocity]} 
-                        onValueChange={(v) => updateSetting('pvp', 'velocity', v[0])}
-                        min={0} 
-                        max={100} 
-                        step={5}
-                        className="[&_[role=slider]]:bg-primary"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="visual" className="space-y-6 mt-6">
-                {[
-                  { key: 'esp', title: 'ESP', desc: 'Подсветка игроков через стены', icon: 'Users' },
-                  { key: 'tracers', title: 'Tracers', desc: 'Линии к игрокам', icon: 'GitBranch' },
-                  { key: 'xray', title: 'XRay', desc: 'Видеть руды через блоки', icon: 'Gem' }
-                ].map(item => (
-                  <Card key={item.key} className="bg-card/50 backdrop-blur border-secondary/30">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Icon name={item.icon} size={24} className="text-secondary" />
-                        {item.title}
-                      </CardTitle>
-                      <CardDescription>{item.desc}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <Label>Включить</Label>
-                        <Switch 
-                          checked={settings.visual[item.key]}
-                          onCheckedChange={(v) => updateSetting('visual', item.key, v)}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </TabsContent>
-
-              <TabsContent value="movement" className="space-y-6 mt-6">
-                <Card className="bg-card/50 backdrop-blur border-accent/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Plane" size={24} className="text-accent" />
-                      Fly
-                    </CardTitle>
-                    <CardDescription>Режим полёта</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Включить</Label>
-                      <Switch 
-                        checked={settings.movement.fly}
-                        onCheckedChange={(v) => updateSetting('movement', 'fly', v)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card/50 backdrop-blur border-accent/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Gauge" size={24} className="text-accent" />
-                      Speed
-                    </CardTitle>
-                    <CardDescription>Увеличение скорости</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Скорость: {settings.movement.speed}%</Label>
-                      <Slider 
-                        value={[settings.movement.speed]} 
-                        onValueChange={(v) => updateSetting('movement', 'speed', v[0])}
-                        min={100} 
-                        max={300} 
-                        step={10}
-                        className="[&_[role=slider]]:bg-accent"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card/50 backdrop-blur border-accent/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Feather" size={24} className="text-accent" />
-                      NoFall
-                    </CardTitle>
-                    <CardDescription>Отключение урона от падения</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Label>Включить</Label>
-                      <Switch 
-                        checked={settings.movement.nofall}
-                        onCheckedChange={(v) => updateSetting('movement', 'nofall', v)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="auto" className="space-y-6 mt-6">
-                <Card className="bg-card/50 backdrop-blur border-primary/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Pickaxe" size={24} className="text-primary" />
-                      AutoFarm
-                    </CardTitle>
-                    <CardDescription>Автоматический сбор ресурсов</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Label>Включить</Label>
-                      <Switch 
-                        checked={settings.auto.autofarm}
-                        onCheckedChange={(v) => updateSetting('auto', 'autofarm', v)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card/50 backdrop-blur border-primary/30">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="MousePointer" size={24} className="text-primary" />
-                      AutoClicker
-                    </CardTitle>
-                    <CardDescription>Автоматические клики</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>CPS: {settings.auto.autoclicker}</Label>
-                      <Slider 
-                        value={[settings.auto.autoclicker]} 
-                        onValueChange={(v) => updateSetting('auto', 'autoclicker', v[0])}
-                        min={1} 
-                        max={20} 
-                        step={1}
-                        className="[&_[role=slider]]:bg-primary"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <div className="text-center pt-8">
-              <Button size="lg" className="bg-primary text-black hover:bg-primary/90 font-bold text-lg px-12 hover-lift">
-                <Icon name="Save" size={20} className="mr-2" />
-                Сохранить настройки
-              </Button>
+              ))}
             </div>
+
+            <Card className="bg-card/50 backdrop-blur border-primary/30 mt-12">
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">Дополнительные возможности</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="config" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 bg-background/50">
+                    <TabsTrigger value="config">Конфиги</TabsTrigger>
+                    <TabsTrigger value="pvp">PvP</TabsTrigger>
+                    <TabsTrigger value="visual">Визуалы</TabsTrigger>
+                    <TabsTrigger value="movement">Движение</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="config" className="space-y-4 mt-6">
+                    <p className="text-gray-400">Настройте модули под ваш стиль игры и сохраните конфигурацию</p>
+                  </TabsContent>
+
+                  <TabsContent value="pvp" className="space-y-6 mt-6">
+                    <Card className="bg-background/30 border-primary/20">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Icon name="Target" size={24} className="text-primary" />
+                          KillAura
+                        </CardTitle>
+                        <CardDescription>Автоматическая атака врагов</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label>Включить</Label>
+                          <Switch 
+                            checked={settings.pvp.killaura}
+                            onCheckedChange={(v) => updateSetting('pvp', 'killaura', v)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Дальность: {settings.pvp.reach}m</Label>
+                          <Slider 
+                            value={[settings.pvp.reach]} 
+                            onValueChange={(v) => updateSetting('pvp', 'reach', v[0])}
+                            min={3} 
+                            max={6} 
+                            step={0.1}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="visual" className="space-y-6 mt-6">
+                    {[
+                      { key: 'esp', title: 'ESP', desc: 'Подсветка игроков через стены', icon: 'Users' },
+                      { key: 'xray', title: 'XRay', desc: 'Видеть руды через блоки', icon: 'Gem' }
+                    ].map(item => (
+                      <Card key={item.key} className="bg-background/30 border-secondary/20">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Icon name={item.icon} size={24} className="text-secondary" />
+                            {item.title}
+                          </CardTitle>
+                          <CardDescription>{item.desc}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center justify-between">
+                            <Label>Включить</Label>
+                            <Switch 
+                              checked={settings.visual[item.key]}
+                              onCheckedChange={(v) => updateSetting('visual', item.key, v)}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </TabsContent>
+
+                  <TabsContent value="movement" className="space-y-6 mt-6">
+                    <Card className="bg-background/30 border-accent/20">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Icon name="Gauge" size={24} className="text-accent" />
+                          Speed
+                        </CardTitle>
+                        <CardDescription>Увеличение скорости</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Скорость: {settings.movement.speed}%</Label>
+                          <Slider 
+                            value={[settings.movement.speed]} 
+                            onValueChange={(v) => updateSetting('movement', 'speed', v[0])}
+                            min={100} 
+                            max={300} 
+                            step={10}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -398,8 +417,7 @@ export default function Index() {
                     { q: 'Как установить клиент?', a: 'Скачайте файл установки, запустите его и следуйте инструкциям. После установки запустите Minecraft через наш лаунчер.' },
                     { q: 'Безопасен ли Lirider?', a: 'Да, наш клиент использует передовые технологии обхода античитов. Мы регулярно обновляем систему защиты.' },
                     { q: 'На каких версиях работает?', a: 'Lirider поддерживает версии от 1.8 до 1.20.4. Новые версии добавляются в течение недели после релиза.' },
-                    { q: 'Как получить обновления?', a: 'Клиент автоматически проверяет обновления при запуске. Также следите за новостями в нашем Discord.' },
-                    { q: 'Есть ли мобильная версия?', a: 'В данный момент мы работаем над версией для Bedrock Edition (мобильные устройства). Релиз планируется в Q2 2026.' }
+                    { q: 'Как получить обновления?', a: 'Клиент автоматически проверяет обновления при запуске. Также следите за новостями в нашем Discord.' }
                   ].map((faq, i) => (
                     <AccordionItem key={i} value={`item-${i}`}>
                       <AccordionTrigger className="text-left hover:text-secondary">
@@ -450,109 +468,164 @@ export default function Index() {
 
         {activeSection === 'profile' && (
           <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-5xl font-bold text-accent text-glow">Профиль</h2>
-              <p className="text-xl text-gray-400">Управление аккаунтом и настройками</p>
-            </div>
-
-            <Card className="bg-card/50 backdrop-blur border-accent/30">
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary via-secondary to-accent rounded-lg flex items-center justify-center text-4xl">
-                    🎮
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl">ProGamer2025</CardTitle>
-                    <CardDescription className="text-base">Премиум подписка до: 15.03.2026</CardDescription>
-                  </div>
+            {!isAuthenticated ? (
+              <>
+                <div className="text-center space-y-4 mb-12">
+                  <h2 className="text-5xl font-bold text-accent text-glow">
+                    {authMode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}
+                  </h2>
+                  <p className="text-xl text-gray-400">
+                    {authMode === 'login' 
+                      ? 'Войдите для доступа к профилю' 
+                      : 'Создайте аккаунт для покупки клиента'
+                    }
+                  </p>
                 </div>
-              </CardHeader>
-            </Card>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              {[
-                { icon: 'Trophy', label: 'Побед', value: '1,247', color: 'primary' },
-                { icon: 'Target', label: 'Убийств', value: '8,934', color: 'secondary' },
-                { icon: 'Clock', label: 'Часов игры', value: '342', color: 'accent' }
-              ].map((stat, i) => (
-                <Card key={i} className={`bg-card/50 backdrop-blur border-${stat.color}/20 text-center`}>
-                  <CardContent className="pt-6">
-                    <Icon name={stat.icon} size={32} className={`text-${stat.color} mx-auto mb-2`} />
-                    <p className="text-3xl font-bold mb-1">{stat.value}</p>
-                    <p className="text-sm text-gray-400">{stat.label}</p>
+                <Card className="bg-card/50 backdrop-blur border-accent/30 max-w-md mx-auto">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-center">
+                      {authMode === 'login' ? 'Войти' : 'Зарегистрироваться'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input 
+                        type="email" 
+                        placeholder="your@email.com" 
+                        className="bg-background/50" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Пароль</Label>
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        className="bg-background/50" 
+                      />
+                    </div>
+                    {authMode === 'register' && (
+                      <div className="space-y-2">
+                        <Label>Подтверждение пароля</Label>
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          className="bg-background/50" 
+                        />
+                      </div>
+                    )}
+                    <Button 
+                      className="w-full bg-accent text-black hover:bg-accent/90 font-bold"
+                      onClick={() => setIsAuthenticated(true)}
+                    >
+                      {authMode === 'login' ? 'Войти' : 'Создать аккаунт'}
+                    </Button>
+                    <div className="text-center">
+                      <button 
+                        onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                        className="text-sm text-accent hover:underline"
+                      >
+                        {authMode === 'login' 
+                          ? 'Нет аккаунта? Зарегистрироваться' 
+                          : 'Уже есть аккаунт? Войти'
+                        }
+                      </button>
+                    </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              </>
+            ) : (
+              <>
+                <div className="text-center space-y-4 mb-12">
+                  <h2 className="text-5xl font-bold text-accent text-glow">Профиль</h2>
+                  <p className="text-xl text-gray-400">Управление аккаунтом</p>
+                </div>
 
-            <Card className="bg-card/50 backdrop-blur border-accent/30">
-              <CardHeader>
-                <CardTitle>Мои конфигурации</CardTitle>
-                <CardDescription>Сохранённые наборы настроек</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {[
-                  { name: 'Pvp Bypass', desc: 'Настройки для обхода Hypixel', icon: 'Sword' },
-                  { name: 'Анархия', desc: 'Максимальные читы для анархии', icon: 'Flame' },
-                  { name: 'Фарм', desc: 'Автоматизация для фарма', icon: 'Pickaxe' }
-                ].map((config, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-background/30 rounded-lg hover:bg-background/50 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
-                        <Icon name={config.icon} size={20} className="text-accent" />
+                <Card className="bg-card/50 backdrop-blur border-accent/30">
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 bg-gradient-to-br from-primary via-secondary to-accent rounded-lg flex items-center justify-center text-4xl">
+                        🎮
                       </div>
                       <div>
-                        <p className="font-semibold">{config.name}</p>
-                        <p className="text-sm text-gray-400">{config.desc}</p>
+                        <CardTitle className="text-2xl">ProGamer2025</CardTitle>
+                        <CardDescription className="text-base">Премиум подписка до: 15.03.2026</CardDescription>
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" className="border-accent/30 hover:bg-accent/10">
-                      Загрузить
+                  </CardHeader>
+                </Card>
+
+                <Card className="bg-card/50 backdrop-blur border-accent/20">
+                  <CardHeader>
+                    <CardTitle>HWID</CardTitle>
+                    <CardDescription>Уникальный идентификатор устройства</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3 p-4 bg-background/30 rounded-lg font-mono text-sm">
+                      <Icon name="Fingerprint" size={24} className="text-accent" />
+                      <code className="flex-1">A4B2-C8D9-E3F1-5G7H-9I0J</code>
+                      <Button size="sm" variant="outline" className="border-accent/30">
+                        <Icon name="Copy" size={16} />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card/50 backdrop-blur border-accent/30">
+                  <CardHeader>
+                    <CardTitle>Скачать клиент</CardTitle>
+                    <CardDescription>Последняя версия: v2.4.1</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button className="w-full bg-primary text-black hover:bg-primary/90 font-semibold">
+                      <Icon name="Download" size={18} className="mr-2" />
+                      Скачать для Windows
                     </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                    <Button variant="outline" className="w-full border-accent/30">
+                      <Icon name="Download" size={18} className="mr-2" />
+                      Скачать для macOS
+                    </Button>
+                  </CardContent>
+                </Card>
 
-            <Card className="bg-card/50 backdrop-blur border-accent/30">
-              <CardHeader>
-                <CardTitle>Настройки аккаунта</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Автообновление клиента</Label>
-                    <p className="text-sm text-gray-400">Скачивать новые версии автоматически</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Телеметрия</Label>
-                    <p className="text-sm text-gray-400">Отправка анонимной статистики</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Уведомления</Label>
-                    <p className="text-sm text-gray-400">Получать новости и обновления</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-              </CardContent>
-            </Card>
+                <Card className="bg-card/50 backdrop-blur border-accent/30">
+                  <CardHeader>
+                    <CardTitle>Настройки аккаунта</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Автообновление клиента</Label>
+                        <p className="text-sm text-gray-400">Скачивать новые версии автоматически</p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Уведомления</Label>
+                        <p className="text-sm text-gray-400">Получать новости и обновления</p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <div className="flex gap-4 justify-center">
-              <Button variant="outline" className="border-accent/30 hover:bg-accent/10">
-                <Icon name="Settings" size={18} className="mr-2" />
-                Дополнительные настройки
-              </Button>
-              <Button variant="destructive">
-                <Icon name="LogOut" size={18} className="mr-2" />
-                Выйти
-              </Button>
-            </div>
+                <div className="flex gap-4 justify-center">
+                  <Button variant="outline" className="border-accent/30 hover:bg-accent/10">
+                    <Icon name="Settings" size={18} className="mr-2" />
+                    Дополнительные настройки
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={() => setIsAuthenticated(false)}
+                  >
+                    <Icon name="LogOut" size={18} className="mr-2" />
+                    Выйти
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>
