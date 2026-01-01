@@ -177,7 +177,7 @@ export default function Index() {
               </div>
             </section>
 
-            <section className="grid md:grid-cols-3 gap-6">
+            <section className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {[
                 { icon: 'MessageSquare', color: 'primary', title: 'Discord', desc: 'Присоединяйся к нашему сообществу', link: 'https://discord.gg/MmHMg7vtcv' },
                 { icon: 'Send', color: 'secondary', title: 'Telegram', desc: 'Новости и обновления в Telegram', link: 'https://t.me/liriderclient' }
